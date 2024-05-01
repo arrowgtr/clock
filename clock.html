@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ρολόι τοπικής ώρας</title>
+    <style>
+        body {
+            background-color: #fff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .clock-container {
+            background-color: #000000;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            border: outset 15px rgb(255, 255, 255);
+            position: relative; /* Add position relative to make sure the message is positioned relative to the clock container */
+        }
+  
+        .clock-container:hover {     
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            border: inset 15px #ffffff;
+        }
+
+        .clock {
+            font-size: 36px;
+            color: #ffffff;
+            margin-bottom: 30px;
+        }
+
+        .location {
+            font-size: 28px;
+            color: #ffffff;
+            margin-bottom: 20px;
+        }
+
+        .date {
+            font-size: 28px;
+            color: #fff;
+      
+        }
+
+        .nice-month-message {
+        margin-top:33px;
+            font-size: 28px;
+            color: #ffffff;
+            position: absolute; /* Position the message absolutely within the clock container */
+            bottom: 10px; /* Adjust the positioning as needed */
+            left: 50%; /* Center the message horizontally */
+            transform: translateX(-50%); /* Center the message horizontally */
+        }
+    </style>
+</head>
+<body>
+    <div class="clock-container">
+        <div id="location" class="location">Ανίχνευση τοποθεσίας...</div>
+        <div id="date" class="date">Φόρτωση ημερομηνίας...</div>
+        <div id="clock" class="clock">Φόρτωση...</div>
+        <div id="nice-month-message" class="nice-month-message" style="display: none;">Καλό μήνα!</div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Function to get the user's location and timezone based on IP address
+            function getUserLocation() {
+                fetch('https://ipapi.co/json/')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Η απάντηση του δικτύου δεν ήταν επιτυχής');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        const city = data.city;
+                        const timeZone = data.timezone;
+                        displayLocalTime(city, timeZone);
+                        displayDate();
+                        displayNiceMonth();
+                    })
+                    .catch(error => {
+                        console.error('Σφάλμα κατά τη λήψη της τοποθεσίας του χρήστη:', error);
+                    });
+            }
+
+            // Function to display the local time
+            function displayLocalTime(city, timeZone) {
+                const clock = document.getElementById('clock');
+                const locationElement = document.getElementById('location');
+
+                // Get the current time in the specified time zone
+                const currentTime = new Date().toLocaleString('el-GR', {
+                    timeZone: timeZone,
+                    hour12: false, // Use 24-hour format
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    second: 'numeric'
+                });
+
+                // Display the local time and city
+                locationElement.textContent = '' + city;
+                clock.textContent = currentTime;
+
+                // Update the clock every second
+                setInterval(function() {
+                    const currentTime = new Date().toLocaleString('el-GR', {
+                        timeZone: timeZone,
+                        hour12: false,
+                        hour: 'numeric',
+                        minute: 'numeric',
+                        second: 'numeric'
+                    });
+                    clock.textContent = currentTime;
+                }, 1000);
+            }
+
+            // Function to display the current date
+            function displayDate() {
+                const dateElement = document.getElementById('date');
+                const currentDate = new Date().toLocaleDateString('el-GR', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                dateElement.textContent = '' + currentDate;
+            }
+
+            // Function to display a nice month message on the first day of each month
+            function displayNiceMonth() {
+                const date = new Date();
+                const currentDay = date.getDate();
+                const currentMonth = date.getMonth() + 1; // Months are zero-based in JavaScript (0 - January, 1 - February, etc.)
+
+                if (currentDay === 1) {
+                    const niceMonthMessage = document.getElementById('nice-month-message');
+                    niceMonthMessage.style.display = 'block'; // Display the message
+                }
+            }
+
+            // Call the function to get the user's location and display the local time, date, and nice month message
+            getUserLocation();
+        });
+    </script>
+</body>
+</html>
